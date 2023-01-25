@@ -27,6 +27,7 @@ module "mongodb" {
   aws_region = var.aws_region
   access_key = var.access_key
   secret_key = var.secret_key
+  aws_token = var.aws_token
   aws_vpc_id = var.aws_vpc_id
   aws_account_id = var.aws_account_id
   aws_cidr = var.aws_cidr
