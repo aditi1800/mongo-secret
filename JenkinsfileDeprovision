@@ -1,0 +1,86 @@
+def getProjectClusters() {
+    def cmd = [ 'bash', '-c', '''
+        project_info="$(curl -X GET --silent --digest --user "$ATLAS_PUBLIC_KEY:$ATLAS_PRIVATE_KEY" "https://cloud.mongodb.com/api/atlas/v1.0/groups" | jq -r '.results[]|"\\(.name),\\(.id)"')"
+        outputtext=""
+        if [[ -z "$project_info" ]];then
+            echo "No projects found, exiting..."
+            exit 0
+        else
+            for i in ${project_info} ; do
+                projectname="$(echo $i | awk -F"," '{print $1}')"
+                projectid="$(echo $i | awk -F"," '{print $2}')"
+                clusterlist="$(curl -X GET --silent --digest --user "$ATLAS_PUBLIC_KEY:$ATLAS_PRIVATE_KEY" "https://cloud.mongodb.com/api/atlas/v1.0/groups/$projectid/clusters" | jq -r '.results[].name' | tr "\n" ","|sed "s/,$//g")"
+                if [[ -z "$clusterlist" ]]; then
+                    continue
+                else
+                    outputtext+="\n$projectname:$clusterlist"
+                fi
+            done
+        fi
+        if [[ -z "$outputtext" ]];then
+            echo -e "No clusters found, nothing to delete."
+        else
+            echo -e "Following is list of currently provisioned clusters in ProjectName:ClusterName format:$outputtext"
+        fi
+    ''' ]
+    def sout = new StringBuffer(), serr = new StringBuffer()
+    def proc = cmd.execute(envVars,workDir)
+    proc.consumeProcessOutput(sout, serr)
+    proc.waitForOrKill(10000)
+    if ( sout.toString()!= null && !sout.toString().isEmpty() ) {
+        return sout.toString()
+    } else {
+        return serr.toString()
+    }
+}
+node{
+    withCredentials([
+	string(credentialsId: 'ATLAS_PUBLIC_KEY', variable: 'ATLAS_PUBLIC_KEY'),
+	string(credentialsId: 'ATLAS_PRIVATE_KEY', variable: 'ATLAS_PRIVATE_KEY')
+]){
+    envVars = ["ATLAS_PUBLIC_KEY="+ATLAS_PUBLIC_KEY+"", "ATLAS_PRIVATE_KEY="+ATLAS_PRIVATE_KEY+"" ]
+    File workspacedir = new File("${WORKSPACE}@script")
+    workDir = (workspacedir.exists() && workspacedir.isDirectory()) ? workspacedir : new File("/var/lib/jenkins/workspace")
+    println "workDir="+ workDir
+    def userInput = input(
+        id: 'userInput', message: 'Mongo Atlas Cluster Deprovisioning', parameters: [
+            [
+                $class: 'StringParameterDefinition',
+                name: 'Please enter cluster to be deleted in ProjectName:ClusterName format in input box and click proceed to delete',
+                defaultValue: '',
+                description: getProjectClusters(),
+                trim: true
+            ]
+        ]
+    )
+    println "userInput"+userInput
+    if (userInput == "") {
+        println "No cluster provided, exiting.."
+    } else {
+        println "Processing:"+userInput
+        def(projectname, clustername)=userInput.tokenize(':')
+        envVars.add("ATLAS_PROJECT_NAME="+projectname+"")
+        envVars.add("ATLAS_CLUSTER_NAME="+clustername+"")
+        def cmd = [ 'bash', '-c', '''
+            ATLAS_PROJECT_ID="$(curl -X GET --silent --digest --user "$ATLAS_PUBLIC_KEY:$ATLAS_PRIVATE_KEY" "https://cloud.mongodb.com/api/atlas/v1.0/groups"|jq -r '.results[]|select(.name=="'$ATLAS_PROJECT_NAME'").id')"
+            if [[ -z "$ATLAS_PROJECT_ID" ]];then
+                echo "Unable to get project ID for project $ATLAS_PROJECT_NAME ,exiting ..."
+                exit 1
+            else
+                curl -i -u "$ATLAS_PUBLIC_KEY:$ATLAS_PRIVATE_KEY" --silent --digest -X DELETE "https://cloud.mongodb.com/api/atlas/v1.0/groups/$ATLAS_PROJECT_ID/clusters/$ATLAS_CLUSTER_NAME"
+            fi
+        ''']
+        def sout = new StringBuffer(), serr = new StringBuffer()
+        def proc = cmd.execute(envVars,workDir)
+        proc.consumeProcessOutput(sout, serr)
+        proc.waitForOrKill(10000)
+        def errorCode = proc.exitValue()
+        if ( errorCode == 0 ) {
+            println "Successfully deleted cluster:"+clustername+sout.toString()
+        }
+        else {
+            println "Failed to delete cluster:"+clustername+serr.toString()
+        }
+    }
+ }
+}
