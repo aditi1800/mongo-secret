@@ -81,6 +81,11 @@ resource "mongodbatlas_database_user" "db-user" {
    aws_account_id         = var.aws_account_id
  }
 
+resource "aws_vpc_peering_connection_accepter" "peer" {
+  vpc_peering_connection_id = mongodbatlas_network_peering.aws-atlas.connection_id
+  auto_accept               = true
+}
+
  resource "mongodbatlas_project_ip_access_list" "test" {
    count = var.aws_vpc_id ? 1 : 0
    #project_id = mongodbatlas_project.aws_atlas.id
