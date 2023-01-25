@@ -28,7 +28,7 @@ pipeline {
         choice(name: 'atlas_project', choices: ['wo-sre-dev-cluster(625e8f54c6f9c330400eb8c9)'], description: 'Select Project from the list.Respective Project ID mentioned in parenthesis for reference')
         //string(name: 'atlas_cluster_name', defaultValue: '', description: 'Atlas cluster name in format: wo-<env>-<instance>-mongodb Ex. wo-dev-lcap-mongodb')
         //validatingString(name: 'atlas_cluster_name', defaultValue: '', regex: '^wo?-.+?-.+?-mongodb', failedValidationMessage: 'Validation failed! : Enter cluster name in format: wo-<env>-<instance>-mongodb', description: 'Atlas cluster name in format: wo-<env>-<instance>-mongodb Ex. wo-dev-lcap-mongodb')
-        validatingString(name: 'atlas_instance_name', defaultValue: '', regex: '^wo.?-.+?-.+', failedValidationMessage: 'Validation failed! : Enter instance name in format: wo-<env>-<instance>', description: 'Atlas cluster name in format: wo-<env>-<instance>-mongodb Ex. wo-dev-lcap-mongodb')
+        validatingString(name: 'atlas_instance_name', defaultValue: '', regex: '^wo.?-.+?-.+', failedValidationMessage: 'Validation failed! : Enter instance name in format: wo-<env>-<instance>', description: 'Atlas cluster name in format: wo-<env>-<instance> Ex. wo-dev-lcap')
         separator(name: 'VPC Peering Related Parameters', sectionHeader: 'VPC Peering Related Parameters')
         // string(name: 'aws_region', defaultValue: 'ap-south-1', description: 'AWS Region in which cluster needs to be deployed.')
         string(name: 'atlas_vpc_cidr', defaultValue: '', description: 'Atlas VPC CIDR block')
