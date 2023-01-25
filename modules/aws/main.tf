@@ -2,7 +2,6 @@ provider "aws" {
   region     = var.aws_region
   access_key = var.access_key
   secret_key = var.secret_key
-  //aws_token = var.aws_token
 }
 /*
 //Create Primary VPC
