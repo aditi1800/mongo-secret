@@ -72,8 +72,8 @@ resource "mongodbatlas_database_user" "db-user" {
    accepter_region_name   = var.aws_region
    #project_id             = mongodbatlas_project.aws_atlas.id
    project_id = var.project_id
-   #container_id           = mongodbatlas_network_container.atlas_container.container_id
-   container_id           = mongodbatlas_cluster.cluster-atlas.container_id
+   container_id           = mongodbatlas_network_container.atlas_container.container_id
+   #container_id           = mongodbatlas_cluster.cluster-atlas.container_id
    provider_name          = "AWS"
    # route_table_cidr_block = aws_vpc.primary.cidr_block
    # vpc_id                 = aws_vpc.primary.id
