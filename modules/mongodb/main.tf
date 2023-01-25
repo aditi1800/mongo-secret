@@ -68,7 +68,7 @@ resource "mongodbatlas_database_user" "db-user" {
  }
 
  resource "mongodbatlas_network_peering" "aws-atlas" {
-   count = var.aws_vpc_id ? 1 : 0
+   #count = var.aws_vpc_id ? 1 : 0
    accepter_region_name   = var.aws_region
    #project_id             = mongodbatlas_project.aws_atlas.id
    project_id = var.project_id
