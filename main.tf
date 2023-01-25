@@ -1,4 +1,5 @@
-module "aws" {
+/*
+  module "aws" {
   source = "./modules/aws" 
   //env = var.env
   aws_region = var.aws_region
@@ -8,6 +9,7 @@ module "aws" {
   aws_account_id = var.aws_account_id
   aws_cidr = var.aws_cidr
  }
+ */
  
 
 module "mongodb" {
