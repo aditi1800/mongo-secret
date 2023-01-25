@@ -72,7 +72,4 @@ resource "aws_security_group" "primary_default" {
 }
 */
 
-resource "aws_vpc_peering_connection_accepter" "peer" {
-  vpc_peering_connection_id = mongodbatlas_network_peering.aws-atlas.connection_id
-  auto_accept               = true
-}
+
