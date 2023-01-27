@@ -31,7 +31,7 @@ pipeline {
         validatingString(name: 'atlas_instance_name', defaultValue: '', regex: '^wo.?-.+?-.+', failedValidationMessage: 'Validation failed! : Enter instance name in format: wo-<env>-<instance>', description: 'Atlas cluster name in format: wo-<env>-<instance> Ex. wo-dev-lcap')
         separator(name: 'VPC Peering Related Parameters', sectionHeader: 'VPC Peering Related Parameters')
         // string(name: 'aws_region', defaultValue: 'ap-south-1', description: 'AWS Region in which cluster needs to be deployed.')
-        string(name: 'atlas_vpc_cidr', defaultValue: '', description: 'Atlas VPC CIDR block')
+        // string(name: 'atlas_vpc_cidr', defaultValue: '', description: 'Atlas VPC CIDR block')
         string(name: 'aws_act_id', defaultValue: '', description: 'AWS account in which service needs to be deployed.')
         string(name: 'aws_vpc_id', defaultValue: '', description: 'AWS VPC ID for peering')
         string(name: 'aws_vpc_cidr', defaultValue: '', description: 'AWS VPC CIDR block')
@@ -88,15 +88,6 @@ pipeline {
                        else
                          if [ $(echo "$aws_vpc_cidr" | cut -f 2- -d '/') -gt 24 ]; then
                              echo "Invalid AWS VPC cidr"
-                             exit 1
-                         fi
-                       fi
-                       if [ -z "$(echo "$atlas_vpc_cidr" | grep -E '([0-9]{1,3})\\.([0-9]{1,3})\\.([0-9]{1,3})\\.([0-9]{1,3})\\/[0-9]{1,3}')" ]; then
-                           echo "Invalid Atlas VPC cidr"
-                           exit 1
-                       else
-                         if [ $(echo "$atlas_vpc_cidr" | cut -f 2- -d '/') -gt 24 ]; then
-                             echo "Invalid Atlas VPC cidr"
                              exit 1
                          fi
                        fi
@@ -179,7 +170,6 @@ pipeline {
                       -var project_name=${ATLAS_PROJECT_NAME} \
                       -var project_id=${ATLAS_PROJECT_ID} \
                       -var cluster_name=${atlas_cluster_name} \
-                      -var atlas_vpc_cidr=${atlas_vpc_cidr} \
                       -var access_key=${AWS_ACCESS_KEY_ID} \
                       -var secret_key=${AWS_SECRET_ACCESS_KEY} \
                       -var aws_region=${AWS_DEFAULT_REGION} \
