@@ -86,7 +86,7 @@ resource "mongodbatlas_database_user" "db-user" {
 
 resource "aws_vpc_peering_connection_accepter" "peer" {
   count = var.aws_vpc_id ? 1 : 0
-  vpc_peering_connection_id = mongodbatlas_network_peering.aws-atlas.connection_id
+  vpc_peering_connection_id = mongodbatlas_network_peering.aws-atlas[0].connection_id
   auto_accept               = true
 }
 
