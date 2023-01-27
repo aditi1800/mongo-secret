@@ -14,6 +14,7 @@ variable "atlas_dbuser" {
 
  variable "atlas_dbpassword" {
    description = "The db user passwd for Atlas"
+   sensitive   = true
  }
 
 variable "cluster_name" {
