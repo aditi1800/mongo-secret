@@ -33,10 +33,13 @@ variable "atlasorgid" {
   description = "Atlas Org ID"
   default     = "625e8ee725e33a22794e0bad"
 }
+
+/*
 variable "atlas_vpc_cidr" {
   description = "Atlas CIDR"
   default     = "192.168.232.0/21"
 }
+*/
 
 variable "project_name" {
   description = "MongoDB Atlas project name to create new project"
