@@ -154,6 +154,7 @@ pipeline {
         stage('Terraform Plan') {
             steps {
                 catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+                   wrap([$class: 'MaskPasswordsBuildWrapper', varPasswordPairs: [[password: atlas_dbpassword]]]) {
                     sh '''
                     echo "State File Location: mongo-atlas-provisioning-automation-state-bucket > ${ATLAS_PROJECT_NAME}/${atlas_cluster_name}/terraform.tfstate"
                     # Split atlas_project into ATLAS_PROJECT_NAME and ATLAS_PROJECT_ID
@@ -181,6 +182,7 @@ pipeline {
                       -var atlas_dbuser=${atlas_dbuser} \
                       -out my.plan
                    '''
+                   }
                 }
             }
         }
