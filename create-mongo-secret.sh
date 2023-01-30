@@ -2,10 +2,10 @@
 
 ClusterStatus=""
 
-#Check Cluster Creation
+# Check Cluster Creation
 ClusterCreated="false"
 while [[ $ClusterCreated == "false" ]]; do
-    ClusterStatus="$(curl --silent -i -u "$atlas_public_key:$atlas_private_key" --digest https://cloud.mongodb.com/api/atlas/v1.0/groups/$ATLAS_PROJECT_ID/clusters/$atlas_cluster_name)"
+    ClusterStatus="$(curl --silent -i -u "$atlas_public_key:$atlas_private_key" --digest https://cloud.mongodb.com/api/atlas/v1.0/groups/$ATLAS_PROJECT_ID/clusters/$atlas_cluster_name?pretty=true)"
     echo "ClusterStatus:$ClusterStatus"
     # Check Cluster State - expected is not CLUSTER_NOT_FOUND
     if [ $(echo $ClusterStatus | grep -c "HTTP/2 200") != 0 ]; then
@@ -19,9 +19,9 @@ while [[ $ClusterCreated == "false" ]]; do
     fi
 done
 
-#Get Cluster Values
+# Get Cluster Values
 cluster_response="$(curl --silent -u "$atlas_public_key:$atlas_private_key" --digest -X GET https://cloud.mongodb.com/api/atlas/v1.0/groups/$ATLAS_PROJECT_ID/clusters/$atlas_cluster_name)"
-echo "$cluster_response"
+# echo "$cluster_response"
 host="$(echo "$cluster_response" | jq -r ".connectionStrings.standardSrv" | cut -f 3 -d "/")"
 echo "Host: $host"
 mongodb_conn_string="mongodb+srv://$atlas_dbuser:$atlas_dbpassword@$host"
@@ -42,7 +42,7 @@ SecretStringJson="$(aws secretsmanager get-secret-value \
     --output text)"
 # echo "secretStringValue = $SecretStringJson"
 if [[ -n "$SecretStringJson" ]]; then
-    echo "$SecretStringJson"
+    # echo "$SecretStringJson"
     SecretStringValue="$(echo "$SecretStringJson" | jq '.database = "'$atlas_cluster_name'"' | jq '.mongodb_conn_string = "'$mongodb_conn_string'"' | jq '.username = "'$atlas_dbuser'"' | jq '.password = "'$atlas_dbpassword'"' | jq '.host = "'$host'"' | tr -d "\n")"
     # echo "$SecretStringValue"
     instance_name="$(echo "$atlas_cluster_name" | cut -f 2-3 -d "-" | tr -d "\n")"
