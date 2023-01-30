@@ -23,9 +23,9 @@ done
 cluster_response="$(curl --silent -u "$atlas_public_key:$atlas_private_key" --digest -X GET https://cloud.mongodb.com/api/atlas/v1.0/groups/$ATLAS_PROJECT_ID/clusters/$atlas_cluster_name)"
 # echo "$cluster_response"
 host="$(echo "$cluster_response" | jq -r ".connectionStrings.standardSrv" | cut -f 3 -d "/")"
-echo "Host: $host"
+# echo "Host: $host"
 mongodb_conn_string="mongodb+srv://$atlas_dbuser:$atlas_dbpassword@$host"
-echo "Connection String: $mongodb_conn_string"
+# echo "Connection String: $mongodb_conn_string"
 
 # if [[ (-z $mongodb_conn_string) || (-z $host) || (-z $atlas_dbuser) || (-z $atlas_dbpassword)]]; then
 #         echo "Either any parameter is empty. Exiting.."
