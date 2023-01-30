@@ -103,7 +103,7 @@ pipeline {
                          fi
                        fi
                     fi
-                    secret="$(aws secretsmanager get-secret-value --secret-id wo/all-components/dev-keval/mongodb-credentials --output text)"
+                    secret="$(aws secretsmanager get-secret-value --secret-id wo/all-components/dev-keva/mongodb-credentials --output text)"
                     echo "$secret"
                     echo "atlas_region=$atlas_region"
                     echo "AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION"
