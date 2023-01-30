@@ -47,21 +47,27 @@ pipeline {
         //AWS_DEFAULT_REGION = "${sh(returnStdout: true, script: 'echo "$atlas_region" | tr "[:upper:]" "[:lower:]" | sed "s/_/-/g" | tr -d "\n"')}"
         AWS_DEFAULT_REGION = "${region}"
         atlas_region = "${sh(returnStdout: true, script: '''#!/bin/bash
-                                                            echo "$region" | tr "[:lower:]" "[:upper:]" | sed "s/-/_/g" | tr -d "\n"
-                                                            ''').trim()}"
-        atlas_cluster_name = "${sh(returnStdout: true, script: 'echo "$atlas_instance_name-mongodb" | tr -d "\n"')}"
+                                                  echo "$region" | tr "[:lower:]" "[:upper:]" | sed "s/-/_/g" | tr -d "\n"
+                                                  ''').trim()}"
+        atlas_cluster_name = "${sh(returnStdout: true, script: '''#!/bin/bash
+                                                        echo "$atlas_instance_name-mongodb" | tr -d "\n"
+                                                        ''').trim()}"
         atlas_dbuser = "${sh(returnStdout: true, script: "echo $atlas_cluster_name | cut -f 3- -d '-' | tr -d '\n'")}"
         atlas_dbpassword = "${sh(returnStdout: true, script: "aws secretsmanager get-random-password --require-each-included-type --password-length 13 --exclude-punctuation --output text --region $AWS_DEFAULT_REGION | tr -d '\n'")}"
-        ATLAS_PROJECT_NAME = "${sh(returnStdout: true, script: 'echo "$atlas_project"|cut -f 1 -d "(" | tr -d "\n"')}"
-        ATLAS_PROJECT_ID = "${sh(returnStdout: true, script: 'echo "$atlas_project"|cut -f 2 -d "("|cut -f 1 -d ")" | tr -d "\n"')}"
+        ATLAS_PROJECT_NAME = "${sh(returnStdout: true, script: '''#!/bin/bash
+                                                        echo "$atlas_project"|cut -f 1 -d "(" | tr -d "\n"
+                                                        ''').trim()}"
+        ATLAS_PROJECT_ID = "${sh(returnStdout: true, script: '''#!/bin/bash
+                                                      echo "$atlas_project"|cut -f 2 -d "("|cut -f 1 -d ")" | tr -d "\n"
+                                                      ''').trim()}"
     // TF_LOG="TRACE"
     }
     stages {
-        // stage('checkout') {
-            // steps {
-                // git branch: "${BRANCH_NAME_ENV}", credentialsId: 'git-cred-for-MongoDB', url: 'https://github.ibm.com/WatsonOrchestrate/wo-mongodb-atlas-automation.git'
-            // }
-        // }
+        stage('checkout') {
+            steps {
+                git branch: "${BRANCH_NAME_ENV}", credentialsId: 'git-cred-for-MongoDB', url: 'https://github.ibm.com/WatsonOrchestrate/wo-mongodb-atlas-automation.git'
+            }
+        }
         stage('Variable Processing') {
             steps {
                 script {
@@ -210,7 +216,7 @@ pipeline {
                      # export ATLAS_PROJECT_ID="$(echo "$atlas_project"|cut -f 2 -d "("|cut -f 1 -d ")")"
                      # export atlas_dbuser="$(echo "$instance_name-mongodb")"
                      echo "terraform Apply"
-                     terraform apply "my.plan"
+                     terraform apply -no-color "my.plan"
                      pwd
                       chmod +x create-mongo-secret.sh
                       ./create-mongo-secret.sh
