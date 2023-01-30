@@ -44,9 +44,9 @@ pipeline {
         AWS_ACCESS_KEY_ID = credentials('AWS_ACCESS_KEY_ID')
         AWS_SECRET_ACCESS_KEY = credentials('AWS_SECRET_ACCESS_KEY')
         AWS_SESSION_TOKEN = credentials('AWS_SESSION_TOKEN')
-        //AWS_DEFAULT_REGION = "${sh(returnStdout: true, script: 'echo -e "$atlas_region" | tr "[:upper:]" "[:lower:]" | sed "s/_/-/g" | tr -d "\n"')}"
+        //AWS_DEFAULT_REGION = "${sh(returnStdout: true, script: 'echo "$atlas_region" | tr "[:upper:]" "[:lower:]" | sed "s/_/-/g" | tr -d "\n"')}"
         AWS_DEFAULT_REGION = "${region}"
-        atlas_region = "${sh(returnStdout: true, script: 'echo "$region" | tr "[:lower:]" "[:upper:]" | sed "s/-/_/g" | tr -d "\n"')}"
+        atlas_region = "${sh(returnStdout: true, script: 'echo -e "$region" | tr "[:lower:]" "[:upper:]" | sed "s/-/_/g" | tr -d "\n"')}"
         atlas_cluster_name = "${sh(returnStdout: true, script: 'echo "$atlas_instance_name-mongodb" | tr -d "\n"')}"
         atlas_dbuser = "${sh(returnStdout: true, script: "echo $atlas_cluster_name | cut -f 3- -d '-' | tr -d '\n'")}"
         atlas_dbpassword = "${sh(returnStdout: true, script: "aws secretsmanager get-random-password --require-each-included-type --password-length 13 --exclude-punctuation --output text --region $AWS_DEFAULT_REGION | tr -d '\n'")}"
