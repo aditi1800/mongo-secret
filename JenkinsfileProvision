@@ -24,26 +24,29 @@ pipeline {
         separator(name: 'MongoDB Atlas Parameters', sectionHeader: 'MongoDB Atlas Parameters')
         password(name: 'atlas_public_key', defaultValue: '', description: 'MongoDB Atlas public key(typically 8 characters in length) for provisioning.')
         password(name: 'atlas_private_key', defaultValue: '', description: 'MongoDB Atlas private key(typically 36 characters in length) for provisioning.')
-        choice(name: 'atlas_region', choices: ['US_EAST_1', 'US_WEST_2', 'CA_CENTRAL_1', 'US_EAST_2', 'US_WEST_1', 'SA_EAST_1', 'AP_SOUTHEAST_1', 'AP_SOUTHEAST_2', 'AP_SOUTHEAST_3', 'AP_SOUTH_1', 'AP_EAST_1', 'AP_NORTHEAST_1', 'AP_NORTHEAST_2', 'AP_NORTHEAST_3', 'EU_WEST_1', 'EU_CENTRAL_1', 'EU_NORTH_1', 'EU_WEST_2', 'EU_WEST_3', 'EU_SOUTH_1', 'ME_SOUTH_1', 'AF_SOUTH_1'], description: 'Select Project')
-        choice(name: 'atlas_project', choices: ['wo-sre-dev-cluster(625e8f54c6f9c330400eb8c9)'], description: 'Select Project from the list.Respective Project ID mentioned in parenthesis for reference')
-        //string(name: 'atlas_cluster_name', defaultValue: '', description: 'Atlas cluster name in format: wo-<env>-<instance>-mongodb Ex. wo-dev-lcap-mongodb')
-        //validatingString(name: 'atlas_cluster_name', defaultValue: '', regex: '^wo?-.+?-.+?-mongodb', failedValidationMessage: 'Validation failed! : Enter cluster name in format: wo-<env>-<instance>-mongodb', description: 'Atlas cluster name in format: wo-<env>-<instance>-mongodb Ex. wo-dev-lcap-mongodb')
-        validatingString(name: 'atlas_instance_name', defaultValue: '', regex: '^wo.?-.+?-.+', failedValidationMessage: 'Validation failed! : Enter instance name in format: wo-<env>-<instance>', description: 'Atlas instance name in format: wo-<env>-<instance> Ex. wo-dev-lcap')
+        // choice(name: 'atlas_region', choices: ['US_EAST_1', 'US_WEST_2', 'CA_CENTRAL_1', 'US_EAST_2', 'US_WEST_1', 'SA_EAST_1', 'AP_SOUTHEAST_1', 'AP_SOUTHEAST_2', 'AP_SOUTHEAST_3', 'AP_SOUTH_1', 'AP_EAST_1', 'AP_NORTHEAST_1', 'AP_NORTHEAST_2', 'AP_NORTHEAST_3', 'EU_WEST_1', 'EU_CENTRAL_1', 'EU_NORTH_1', 'EU_WEST_2', 'EU_WEST_3', 'EU_SOUTH_1', 'ME_SOUTH_1', 'AF_SOUTH_1'], description: 'Select Project')
+        choice(name: 'region', choices: ['us-east-1', 'us-west-2', 'ca-central-1', 'us-east-2', 'us-west-1', 'sa-east-1', 'ap-southeast-1', 'ap-southeast-2', 'ap-southeast-3', 'ap-south-1', 'ap-east-1', 'ap-northeast-1', 'ap-northeast-2', 'ap-northeast-3', 'eu-west-1', 'eu-central-1', 'eu-north-1', 'eu-west-2', 'eu-west-3', 'eu-south-1', 'me-south-1', 'af-south-1'], description: 'Select Region')
+        choice(name: 'atlas_project', choices: ['wo-sre-dev-cluster(625e8f54c6f9c330400eb8c9)', 'wo-sre-pre-prod(6294afcd616aad482736ec3d)', 'wo-sre-prod(6294ae49a574e03a2abfb428)', 'wo-sre-stg-cluster(6273639f0dbf34569a3c0b2a)'], description: 'Select Project from the list.Respective Project ID mentioned in parenthesis for reference')
+        // string(name: 'atlas_cluster_name', defaultValue: '', description: 'Atlas cluster name in format: wo-<env>-<instance>-mongodb Ex. wo-dev-lcap-mongodb')
+        // validatingString(name: 'atlas_cluster_name', defaultValue: '', regex: '^wo?-.+?-.+?-mongodb', failedValidationMessage: 'Validation failed! : Enter cluster name in format: wo-<env>-<instance>-mongodb', description: 'Atlas cluster name in format: wo-<env>-<instance>-mongodb Ex. wo-dev-lcap-mongodb')
+        validatingString(name: 'atlas_instance_name', defaultValue: '', regex: '^.+?-.+?-.+', failedValidationMessage: 'Validation failed! : Enter instance name in format: wo-<env>-<instance>', description: 'Atlas instance name in format: wo-<env>-<instance> Ex. wo-dev-lcap')
         separator(name: 'VPC Peering Related Parameters', sectionHeader: 'VPC Peering Related Parameters')
         // string(name: 'aws_region', defaultValue: 'ap-south-1', description: 'AWS Region in which cluster needs to be deployed.')
         // string(name: 'atlas_vpc_cidr', defaultValue: '', description: 'Atlas VPC CIDR block')
         string(name: 'aws_act_id', defaultValue: '', description: 'AWS account in which service needs to be deployed.')
         string(name: 'aws_vpc_id', defaultValue: '', description: 'AWS VPC ID for peering')
         string(name: 'aws_vpc_cidr', defaultValue: '', description: 'AWS VPC CIDR block')
-    //string(name: 'subnet_a_cidr', defaultValue: '', description: 'AWS VPC subnet a CIDR block')
-    //string(name: 'subnet_b_cidr', defaultValue: '', description: 'AWS VPC subnet b CIDR block')
+        //string(name: 'subnet_a_cidr', defaultValue: '', description: 'AWS VPC subnet a CIDR block')
+        //string(name: 'subnet_b_cidr', defaultValue: '', description: 'AWS VPC subnet b CIDR block')
     }
     environment {
         BRANCH_NAME_ENV = 'mongo-atlas-provisioning'
         AWS_ACCESS_KEY_ID = credentials('AWS_ACCESS_KEY_ID')
         AWS_SECRET_ACCESS_KEY = credentials('AWS_SECRET_ACCESS_KEY')
         AWS_SESSION_TOKEN = credentials('AWS_SESSION_TOKEN')
-        AWS_DEFAULT_REGION = "${sh(returnStdout: true, script: 'echo "$atlas_region" | tr "[:upper:]" "[:lower:]" | sed "s/_/-/g" | tr -d "\n"')}"
+        //AWS_DEFAULT_REGION = "${sh(returnStdout: true, script: 'echo "$atlas_region" | tr "[:upper:]" "[:lower:]" | sed "s/_/-/g" | tr -d "\n"')}"
+        AWS_DEFAULT_REGION = "${region}"
+        atlas_region = "${sh(returnStdout: true, script: 'echo "$region" | tr "[:lower:]" "[:upper:]" | sed "s/-/_/g" | tr -d "\n"')}"
         atlas_cluster_name = "${sh(returnStdout: true, script: 'echo "$atlas_instance_name-mongodb" | tr -d "\n"')}"
         atlas_dbuser = "${sh(returnStdout: true, script: "echo $atlas_cluster_name | cut -f 3- -d '-' | tr -d '\n'")}"
         atlas_dbpassword = "${sh(returnStdout: true, script: "aws secretsmanager get-random-password --require-each-included-type --password-length 13 --exclude-punctuation --output text --region $AWS_DEFAULT_REGION | tr -d '\n'")}"
@@ -52,11 +55,11 @@ pipeline {
     // TF_LOG="TRACE"
     }
     stages {
-        //stage('checkout') {
-            //steps {
-                //git branch: "${BRANCH_NAME_ENV}", credentialsId: 'git-cred-for-MongoDB', url: 'https://github.ibm.com/WatsonOrchestrate/wo-mongodb-atlas-automation.git'
-           //}
-       // }
+        stage('checkout') {
+            steps {
+                git branch: "${BRANCH_NAME_ENV}", credentialsId: 'git-cred-for-MongoDB', url: 'https://github.ibm.com/WatsonOrchestrate/wo-mongodb-atlas-automation.git'
+            }
+        }
         stage('Variable Processing') {
             steps {
                 script {
@@ -77,18 +80,26 @@ pipeline {
                         echo "Provided Atlas private Key is Invalid"
                         exit 1
                     fi
-                    if [ -z $(echo "$atlas_instance_name" | grep -E '^wo.?-.+?-.+') ]; then
+                    if [ -z $(echo "$atlas_instance_name" | grep -E '^.+?-.+?-.+') ]; then
                         echo "Invalid Instance Name Format : Enter Instance Name in format: wo-<env>-<instance>"
                         exit 1
                     fi
                     if [ ! -z "$aws_vpc_id" ]; then
+                        if [ -z $(echo "$aws_vpc_id" | grep -E '^vpc.?-.+') ]; then
+                            echo "Invalid VPC Id"
+                            exit 1
+                        fi
                         if [ -z "$(echo "$aws_vpc_cidr" | grep -E '([0-9]{1,3})\\.([0-9]{1,3})\\.([0-9]{1,3})\\.([0-9]{1,3})\\/[0-9]{1,3}')" ]; then
-                           echo "Invalid AWS VPC cidr"
-                           exit 1
-                       else
-                         if [ $(echo "$aws_vpc_cidr" | cut -f 2- -d '/') -gt 24 ]; then
+                            echo "Invalid AWS VPC cidr"
+                            exit 1
+                        else
+                         if [ $(echo "$aws_vpc_cidr" | cut -f 2- -d '/') -gt 28 ]; then
                              echo "Invalid AWS VPC cidr"
                              exit 1
+
+                         elif [ $(echo "$aws_vpc_cidr" | cut -f 2- -d '/') -lt 16 ]; then
+                               echo "Invalid AWS VPC cidr"
+                               exit 1
                          fi
                        fi
                     fi
@@ -139,10 +150,7 @@ pipeline {
             steps {
                 catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                     sh '''
-                    pwd
-                    ls -la
                     rm -rf .terraform .terraform.lock.hcl terraform.tfstate.d
-                    ls -la
                     # Split atlas_project into ATLAS_PROJECT_NAME and ATLAS_PROJECT_ID
                     # export ATLAS_PROJECT_NAME="$(echo "$atlas_project"|cut -f 1 -d "(")"
                     # export ATLAS_PROJECT_ID="$(echo "$atlas_project"|cut -f 2 -d "("|cut -f 1 -d ")")"
@@ -154,7 +162,7 @@ pipeline {
         stage('Terraform Plan') {
             steps {
                 catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-                   wrap([$class: 'MaskPasswordsBuildWrapper', varPasswordPairs: [[password: atlas_dbpassword]]]) {
+                  wrap([$class: 'MaskPasswordsBuildWrapper', varPasswordPairs: [[password: atlas_dbpassword]]]) {
                     sh '''
                     echo "State File Location: mongo-atlas-provisioning-automation-state-bucket > ${ATLAS_PROJECT_NAME}/${atlas_cluster_name}/terraform.tfstate"
                     # Split atlas_project into ATLAS_PROJECT_NAME and ATLAS_PROJECT_ID
@@ -182,7 +190,7 @@ pipeline {
                       -var atlas_dbuser=${atlas_dbuser} \
                       -out my.plan
                    '''
-                   }
+                  }
                 }
             }
         }
@@ -195,7 +203,6 @@ pipeline {
                      echo "terraform Apply"
                      terraform apply "my.plan"
                      pwd
-                      ls -ltr
                       chmod +x create-mongo-secret.sh
                       ./create-mongo-secret.sh
                       RC=$?
