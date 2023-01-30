@@ -49,6 +49,7 @@ if [[ -n "$SecretStringJson" ]]; then
     secretName="wo/all-components/$instance_name/mongodb-credentials"
 
     aws secretsmanager create-secret --name "$secretName" --secret-string "$SecretStringValue"
+    echo "Secret : $secretName has been successfully created"
 
 else
     echo "Couldn't get Secret String"
