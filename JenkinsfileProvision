@@ -129,8 +129,10 @@ pipeline {
                     '''
                     , returnStatus:true)
                     if (res != 0) {
+                        ansiColor('xterm') {
                         currentBuild.result = 'ABORTED'
-                        error('Invalid format of parameter')
+                        error('\033[31mInvalid format of parameter\033[0m')
+                        }
                     }
                 }
             }
