@@ -10,7 +10,7 @@ while [[ $ClusterCreated == "false" ]]; do
     # Check Cluster State - expected is not CLUSTER_NOT_FOUND
     if [ $(echo $ClusterStatus | grep -c "HTTP/2 200") != 0 ]; then
         ClusterCreated="true"
-        echo "\033[32mCluster : $atlas_cluster_name has been successfully created\033[0m"
+        echo "Cluster : $atlas_cluster_name has been successfully created"
         break
     else
         echo "Sleeping for 1m, and retrying.."
@@ -50,7 +50,6 @@ if [[ -n "$SecretStringJson" ]]; then
     secretName="wo/all-components/$instance_name/mongodb-credentials"
 
     aws secretsmanager create-secret --name "$secretName" --secret-string "$SecretStringValue"
-    echo "\033[32mSecret : $secretName has been successfully created\033[0m"
 
 else
     echo "Couldn't get Secret String"
