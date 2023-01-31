@@ -1,18 +1,28 @@
 # aws-atlas-terraform
 
+## **DESCRIPTION**
+
+---
+
+This repository contains code to automate creation of mongo atlas cluster and mongo secret in AWS Secrets Manager. It uses terraform to deploy Mongo Cluster by taking user inputed parameters such as atlas public key, atlas private key, region, atlas project and instance name. After cluster is created, it grabs the values such as connection string, host, etc. from cluster through api and generates secret in AWS Secrets Manager.
+
+You can also create network peering connection by providing aws account id, vpc id of vpc to be peered and IPv4 cidr block of vpc in parameters in jenkins.
+
 ## **INDEX**
 
-| S.No. | File Name | Description |
-| --- | --- | --- |
-| 1. | JenkinsfileProvision | Contains the definition of Jenkins Pipeline. It contains various stages for Mongo cluster creation, VPC peering and secret creation. |
-| 2. | JenkinsfileDeprovision | Contains the definition of Jenkins Pipeline to delete an existing Mongo cluster. |
-| 3. | create-mongo-secret.sh | Shell script file to create a secret containing Mongo cluster related data in AWS Secrets Manager. |
-| 4. | main.tf | Contains the main set of configuration for mongodb module. |
-| 5. | variables.tf | Contains the variable definitions for module. |
-| 6. | versions.tf |  Specifies the mongodbatlas and aws Provider version and required_version to specify the Terraform template version. |
-| 7. | config.tf | Contains backend configuration to store state. |
-| 8. | modules/mongodb | Contains main.tf file to create various resources of mongodb. |
-| 9. | modules/aws | Contains main.tf file to create various resources of mongodb. |
+---
+
+| S.No. | File Name              | Description                                                                                                                          |
+| ----- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| 1.    | JenkinsfileProvision   | Contains the definition of Jenkins Pipeline. It contains various stages for Mongo cluster creation, VPC peering and secret creation. |
+| 2.    | JenkinsfileDeprovision | Contains the definition of Jenkins Pipeline to delete an existing Mongo cluster.                                                     |
+| 3.    | create-mongo-secret.sh | Shell script file to create a secret containing Mongo cluster related data in AWS Secrets Manager.                                   |
+| 4.    | main.tf                | Contains the main set of configuration for mongodb module.                                                                           |
+| 5.    | variables.tf           | Contains the variable definitions for module.                                                                                        |
+| 6.    | versions.tf            | Specifies the mongodbatlas and aws Provider version and required_version to specify the Terraform template version.                  |
+| 7.    | config.tf              | Contains backend configuration to store state.                                                                                       |
+| 8.    | modules/mongodb        | Contains main.tf file to create various resources of mongodb.                                                                        |
+| 9.    | modules/aws            | Contains main.tf file to create various resources of mongodb.                                                                        |
 
 ## **RUN JENKINS PIPELINE**
 
@@ -63,8 +73,18 @@ To create an API key for a project using the Atlas UI:
 
 ### 3. Create credentials in Jenkins for AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY and AWS_SESSION_TOKEN.
 
-### 4. Select Atlas region.
+### 4. Select the region.
 
 ### 5. Select Atlas Project from the list.
 
-### 6. Provide Atlas cluster name in format: wo-<env>-<instance>-mongodb Ex. wo-dev-lcap-mongodb.
+### 6. Provide Atlas instance name in format: wo-<env>-<instance> Ex. wo-dev-lcap.
+
+### 7. VPC Peering
+
+For peering VPC and Mongo cluster -
+
+- Provide valid aws account id.
+
+- Provide valid VPC id eg. vpc-xxxxxxxxxx
+
+- Provide valid VPC IPv4 cidr block.
