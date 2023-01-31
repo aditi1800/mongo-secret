@@ -128,11 +128,9 @@ pipeline {
                     echo "atlas_cluster_name=$atlas_cluster_name"
                     '''
                     , returnStatus:true)
-                    if (res != 0) {
-                        ansiColor('xterm') {
+                    if (res != 0) {                        
                         currentBuild.result = 'ABORTED'
-                        error('\033[31mInvalid format of parameter\033[0m')
-                        }
+                        error('Invalid format of parameter')                        
                     }
                 }
             }
