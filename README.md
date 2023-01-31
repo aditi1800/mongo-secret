@@ -2,15 +2,11 @@
 
 ## **DESCRIPTION**
 
----
-
 This repository contains code to automate creation of mongo atlas cluster and mongo secret in AWS Secrets Manager. It uses terraform to deploy Mongo Cluster by taking user inputed parameters such as atlas public key, atlas private key, region, atlas project and instance name. After cluster is created, it grabs the values such as connection string, host, etc. from cluster through api and generates secret in AWS Secrets Manager.
 
 You can also create network peering connection by providing aws account id, vpc id of vpc to be peered and IPv4 cidr block of vpc in parameters in jenkins.
 
 ## **INDEX**
-
----
 
 | S.No. | File Name              | Description                                                                                                                          |
 | ----- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
@@ -25,8 +21,6 @@ You can also create network peering connection by providing aws account id, vpc 
 | 9.    | modules/aws            | Contains main.tf file to create various resources of mongodb.                                                                        |
 
 ## **RUN JENKINS PIPELINE**
-
----
 
 ### 1. Create API Key to access Project in Mongo Atlas
 
