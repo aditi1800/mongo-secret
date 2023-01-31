@@ -6,6 +6,8 @@ This repository contains code to automate creation of mongo atlas cluster and mo
 
 You can also create network peering connection by providing aws account id, vpc id of vpc to be peered and IPv4 cidr block of vpc in parameters in jenkins.
 
+For running job in Jenkins, visit WO and then dev in Jenkins. To deploy a mongo cluster, build a job by providing parameters in **MongoDB-deploy** pipeline. And to undeploy an existing mongo cluster, build a job in **MongoDB-undeploy** pipeline.
+
 ## **INDEX**
 
 | S.No. | File Name              | Description                                                                                                                          |
@@ -25,6 +27,11 @@ You can also create network peering connection by providing aws account id, vpc 
 ### 1. Create API Key to access Project in Mongo Atlas
 
 To create an API key for a project using the Atlas UI:
+
+- Visit https://account.mongodb.com/ and login to Mongodb Atlas Account
+
+  - For logging into dev environment, search for **Mongo Atlas (Dev)** in 1Password
+  - For logging into prod environment, search for **Mongo Atlas (Prod)** in 1Password
 
 - Navigate to the Access Manager page for your project.
   If it is not already displayed, select the organization that contains your desired project from the Organizations menu in the navigation bar.
@@ -73,7 +80,7 @@ To create an API key for a project using the Atlas UI:
 
 ### 6. Provide Atlas instance name in format: wo-<env>-<instance> Ex. wo-dev-lcap.
 
-### 7. VPC Peering
+### 7. VPC Peering (not needed for dev environmet)
 
 For peering VPC and Mongo cluster -
 
