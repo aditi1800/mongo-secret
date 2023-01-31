@@ -20,6 +20,9 @@ Base URL: https://cloud.mongodb.com/api/atlas/v1.0/groups/{GROUP-ID}/clusters
 
 pipeline {
     agent any
+    options {
+        ansiColor('xterm')
+    }
     parameters {
         separator(name: 'MongoDB Atlas Parameters', sectionHeader: 'MongoDB Atlas Parameters')
         password(name: 'atlas_public_key', defaultValue: '', description: 'MongoDB Atlas public key(typically 8 characters in length) for provisioning. Refer - https://github.ibm.com/WatsonOrchestrate/wo-mongodb-atlas-automation/blob/main/README.md')
@@ -80,7 +83,7 @@ pipeline {
                     # export ATLAS_PROJECT_ID="$(echo "$atlas_project"|cut -f 2 -d "("|cut -f 1 -d ")")"
                     # export atlas_dbuser="$(echo "$instance_name-mongodb")"
                     if [ $(echo "$atlas_public_key" | awk '{print length}') != 8 ]; then
-                        echo "Provided Atlas Public Key is Invalid"
+                        echo "\033[31mProvided Atlas Public Key is Invalid\033[0m"
                         exit 1
 
                     fi
