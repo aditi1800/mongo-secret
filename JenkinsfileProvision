@@ -69,7 +69,7 @@ pipeline {
         // stage('checkout') {
             // steps {
                 // git branch: "${BRANCH_NAME_ENV}", credentialsId: 'git-cred-for-MongoDB', url: 'https://github.ibm.com/WatsonOrchestrate/wo-mongodb-atlas-automation.git'
-            }
+           // }
         // }
         stage('Variable Processing') {
             steps {
