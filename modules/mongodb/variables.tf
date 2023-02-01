@@ -7,7 +7,9 @@ variable "atlas_region" {}
 variable "project_name" {}
 variable "atlas_dbpassword" {}
 variable "atlas_dbuser" {}
-// variable "atlas_vpc_cidr" {}
+variable "instance_size" {}
+variable "disk_size_gb" {}
+//variable "atlas_vpc_cidr" {}
 variable "aws_region" {} 
 variable "access_key" {} 
 variable "secret_key" {}
