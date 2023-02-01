@@ -52,6 +52,16 @@ variable "project_id" {
   default     = "625e8f54c6f9c330400eb8c9"
 }
 
+variable "instance_size" {
+  description = "Atlas provides different instance sizes, each with a default storage capacity and RAM size. The instance size you select is used for all the data-bearing servers in your cluster."
+  default = "M10"
+}
+
+variable "disk_size_gb" {
+  description = "Capacity, GB, of the host’s root volume."
+  default = 10
+}
+
 # AWS Variables Below
 variable "access_key" {
   description = "The access key for AWS Account"
