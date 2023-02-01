@@ -1,97 +1,243 @@
-# aws-atlas-terraform
+/* ## **MONGO ATLAS**
 
-## **DESCRIPTION**
+## Organizations
 
-This repository contains code to automate creation of mongo atlas cluster and mongo secret in AWS Secrets Manager. It uses terraform to deploy Mongo Cluster by taking user inputed parameters such as atlas public key, atlas private key, region, atlas project and instance name. After cluster is created, it grabs the values such as connection string, host, etc. from cluster through api and generates secret in AWS Secrets Manager.
+The orgs resource provides access to manage Atlas organizations.
+Base URL: https://cloud.mongodb.com/api/atlas/v1.0/orgs/{ORG-ID}
 
-You can also create network peering connection by providing aws account id, vpc id of vpc to be peered and IPv4 cidr block of vpc in parameters in jenkins.
+## Projects
 
-For running job in Jenkins, visit WO and then dev in Jenkins. To deploy a mongo cluster, build a job by providing parameters in **MongoDB-deploy** pipeline. And to undeploy an existing mongo cluster, build a job in **MongoDB-undeploy** pipeline.
+Projects in the organizations will have your clusters and databases. Groups and projects are synonymous terms.
+Base URL: https://cloud.mongodb.com/api/atlas/v1.0/groups
 
-## **INDEX**
+## Clusters
 
-| S.No. | File Name              | Description                                                                                                                          |
-| ----- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| 1.    | JenkinsfileProvision   | Contains the definition of Jenkins Pipeline. It contains various stages for Mongo cluster creation, VPC peering and secret creation. |
-| 2.    | JenkinsfileDeprovision | Contains the definition of Jenkins Pipeline to delete an existing Mongo cluster.                                                     |
-| 3.    | create-mongo-secret.sh | Shell script file to create a secret containing Mongo cluster related data in AWS Secrets Manager.                                   |
-| 4.    | main.tf                | Contains the main set of configuration for mongodb module.                                                                           |
-| 5.    | variables.tf           | Contains the variable definitions for module.                                                                                        |
-| 6.    | versions.tf            | Specifies the mongodbatlas and aws Provider version and required_version to specify the Terraform template version.                  |
-| 7.    | config.tf              | Contains backend configuration to store state.                                                                                       |
-| 8.    | modules/mongodb        | Contains main.tf file to create various resources of mongodb.                                                                        |
-| 9.    | modules/aws            | Contains main.tf file to create various resources of mongodb.                                                                        |
+MongoDB Atlas Cluster is a NoSQL Database-as-a-Service offering in the public cloud (available in Microsoft Azure, Google Cloud Platform, Amazon Web Services).A MongoDB cluster allows a MongoDB database to either horizontally scale across many servers with sharding, or to replicate data ensuring high availability with MongoDB replica sets, therefore enhancing the overall performance and reliability of the MongoDB cluster.
+A database cluster is a collection of databases that is managed by a single instance of a running database server.
+Base URL: https://cloud.mongodb.com/api/atlas/v1.0/groups/{GROUP-ID}/clusters
 
-## **RUN JENKINS PIPELINE**
+*/
 
-### 1. Create API Key to access Project in Mongo Atlas
+pipeline {
+    agent any
+    options {
+        ansiColor('xterm')
+    }
+    parameters {
+        separator(name: 'MongoDB Atlas Parameters', sectionHeader: 'MongoDB Atlas Parameters')
+        password(name: 'atlas_public_key', defaultValue: '', description: 'MongoDB Atlas public key(typically 8 characters in length) for provisioning. Refer - https://github.ibm.com/WatsonOrchestrate/wo-mongodb-atlas-automation/blob/main/README.md')
+        password(name: 'atlas_private_key', defaultValue: '', description: 'MongoDB Atlas private key(typically 36 characters in length) for provisioning.')
+        // choice(name: 'atlas_region', choices: ['US_EAST_1', 'US_WEST_2', 'CA_CENTRAL_1', 'US_EAST_2', 'US_WEST_1', 'SA_EAST_1', 'AP_SOUTHEAST_1', 'AP_SOUTHEAST_2', 'AP_SOUTHEAST_3', 'AP_SOUTH_1', 'AP_EAST_1', 'AP_NORTHEAST_1', 'AP_NORTHEAST_2', 'AP_NORTHEAST_3', 'EU_WEST_1', 'EU_CENTRAL_1', 'EU_NORTH_1', 'EU_WEST_2', 'EU_WEST_3', 'EU_SOUTH_1', 'ME_SOUTH_1', 'AF_SOUTH_1'], description: 'Select Project')
+        choice(name: 'region', choices: ['us-east-1', 'us-west-2', 'ca-central-1', 'us-east-2', 'us-west-1', 'sa-east-1', 'ap-southeast-1', 'ap-southeast-2', 'ap-southeast-3', 'ap-south-1', 'ap-east-1', 'ap-northeast-1', 'ap-northeast-2', 'ap-northeast-3', 'eu-west-1', 'eu-central-1', 'eu-north-1', 'eu-west-2', 'eu-west-3', 'eu-south-1', 'me-south-1', 'af-south-1'], description: 'Select Region')
+        choice(name: 'atlas_project', choices: ['wo-sre-dev-cluster(625e8f54c6f9c330400eb8c9)', 'wo-sre-pre-prod(6294afcd616aad482736ec3d)', 'wo-sre-prod(6294ae49a574e03a2abfb428)', 'wo-sre-stg-cluster(6273639f0dbf34569a3c0b2a)'], description: 'Select Project from the list.Respective Project ID mentioned in parenthesis for reference')
+        // string(name: 'atlas_cluster_name', defaultValue: '', description: 'Atlas cluster name in format: wo-<env>-<instance>-mongodb Ex. wo-dev-lcap-mongodb')
+        // validatingString(name: 'atlas_cluster_name', defaultValue: '', regex: '^wo?-.+?-.+?-mongodb', failedValidationMessage: 'Validation failed! : Enter cluster name in format: wo-<env>-<instance>-mongodb', description: 'Atlas cluster name in format: wo-<env>-<instance>-mongodb Ex. wo-dev-lcap-mongodb')
+        validatingString(name: 'atlas_instance_name', defaultValue: '', regex: '^.+?-.+?-.+', failedValidationMessage: 'Validation failed! : Enter instance name in format: wo-<env>-<instance>', description: 'Atlas instance name in format: wo-<env>-<instance> Ex. wo-dev-lcap. This will create mongo cluster with name wo-<env>-<instance>-mongodb in approx. 10 minutes. A database user will be created with name <instance>-mongodb.')
+        validatingString(name: 'instance_size', defaultValue: 'M10', regex: '^M.[0-9]{0,3}$', failedValidationMessage: 'Validation failed! : Enter valid instance size', description: 'Select preferred cluster tier. The cluster tier dictates the memory, storage, and IOPS specification for each data-bearing server in the cluster. Ex. M10')
+        validatingString(name: 'disk_size_gb', defaultValue: '10', regex: '^[0-9]{1,}$', failedValidationMessage: 'Validation failed! : Enter valid disk size', description: 'Capacity, GB, of the host’s root volume. The minimum disk size for dedicated clusters is 10GB.')
+        separator(name: 'VPC Peering Related Parameters', sectionHeader: 'VPC Peering Related Parameters (not needed for dev environmet)')
+        // string(name: 'aws_region', defaultValue: 'ap-south-1', description: 'AWS Region in which cluster needs to be deployed.')
+        // string(name: 'atlas_vpc_cidr', defaultValue: '', description: 'Atlas VPC CIDR block')
+        string(name: 'aws_act_id', defaultValue: '', description: 'AWS account in which service needs to be deployed.')
+        string(name: 'aws_vpc_id', defaultValue: '', description: 'AWS VPC ID for peering Ex. vpc-xxxxxxxxxxx')
+        string(name: 'aws_vpc_cidr', defaultValue: '', description: 'AWS VPC IPv4 CIDR block in format: x.x.x.x/x Ex. 10.0.0.0/16. IPv4 CIDR block of VPC must not overlap')
+    //string(name: 'subnet_a_cidr', defaultValue: '', description: 'AWS VPC subnet a CIDR block')
+    //string(name: 'subnet_b_cidr', defaultValue: '', description: 'AWS VPC subnet b CIDR block')
+    }
+    environment {
+        BRANCH_NAME_ENV = 'mongo-atlas-provisioning'
+        AWS_ACCESS_KEY_ID = credentials('AWS_ACCESS_KEY_ID')
+        AWS_SECRET_ACCESS_KEY = credentials('AWS_SECRET_ACCESS_KEY')
+        AWS_SESSION_TOKEN = credentials('AWS_SESSION_TOKEN')
+        //AWS_DEFAULT_REGION = "${sh(returnStdout: true, script: 'echo "$atlas_region" | tr "[:upper:]" "[:lower:]" | sed "s/_/-/g" | tr -d "\n"')}"
+        AWS_DEFAULT_REGION = "${region}"
+        atlas_region = "${sh(returnStdout: true, script: '''#!/bin/bash
+                                                  echo "$region" | tr "[:lower:]" "[:upper:]" | sed "s/-/_/g" | tr -d "\n"
+                                                  ''').trim()}"
+        atlas_cluster_name = "${sh(returnStdout: true, script: '''#!/bin/bash
+                                                        echo "$atlas_instance_name-mongodb" | tr -d "\n"
+                                                        ''').trim()}"
+        atlas_dbuser = "${sh(returnStdout: true, script: "echo $atlas_cluster_name | cut -f 3- -d '-' | tr -d '\n'")}"
+        atlas_dbpassword = "${sh(returnStdout: true, script: "aws secretsmanager get-random-password --require-each-included-type --password-length 13 --exclude-punctuation --output text --region $AWS_DEFAULT_REGION | tr -d '\n'")}"
+        ATLAS_PROJECT_NAME = "${sh(returnStdout: true, script: '''#!/bin/bash
+                                                        echo "$atlas_project"|cut -f 1 -d "(" | tr -d "\n"
+                                                        ''').trim()}"
+        ATLAS_PROJECT_ID = "${sh(returnStdout: true, script: '''#!/bin/bash
+                                                      echo "$atlas_project"|cut -f 2 -d "("|cut -f 1 -d ")" | tr -d "\n"
+                                                      ''').trim()}"
+    // TF_LOG="TRACE"
+    }
+    stages {
+        stage('checkout') {
+            steps {
+                git branch: "${BRANCH_NAME_ENV}", credentialsId: 'git-cred-for-MongoDB', url: 'https://github.ibm.com/WatsonOrchestrate/wo-mongodb-atlas-automation.git'
+            }
+        }
+        stage('Variable Processing') {
+            steps {
+                script {
+                    def res = 0
+                    res = sh(script: '''#!/bin/bash
+                    # Convert Selected Atlas region to lowercase to set aws region & export
+                    # export AWS_DEFAULT_REGION="$(echo "$atlas_region" | tr '[:upper:]' '[:lower:]' | sed "s/_/-/g")"
+                    # Split atlas_project into ATLAS_PROJECT_NAME and ATLAS_PROJECT_ID
+                    # export ATLAS_PROJECT_NAME="$(echo "$atlas_project"|cut -f 1 -d "(")"
+                    # export ATLAS_PROJECT_ID="$(echo "$atlas_project"|cut -f 2 -d "("|cut -f 1 -d ")")"
+                    # export atlas_dbuser="$(echo "$instance_name-mongodb")"
+                    if [ $(echo "$atlas_public_key" | awk '{print length}') != 8 ]; then
+                        echo "\033[31mProvided Atlas Public Key is Invalid\033[0m"
+                        exit 1
 
-To create an API key for a project using the Atlas UI:
+                    fi
+                    if [ $(echo "$atlas_private_key" | awk '{print length}') != 36 ]; then
+                        echo "\033[31mProvided Atlas private Key is Invalid\033[0m"
+                        exit 1
+                    fi
+                    if [ -z $(echo "$atlas_instance_name" | grep -E '^.+?-.+?-.+') ]; then
+                        echo "\033[31mInvalid Instance Name Format : Enter Instance Name in format: wo-<env>-<instance>\033[0m"
+                        exit 1
+                    fi
+                    if [ $disk_size -lt 10 ]; then
+                        echo "\033[31mDisk size should not be less than 10\033[0m"
+                        exit 1
+                    fi
+                    if [ ! -z "$aws_vpc_id" ]; then
+                        if [ -z "$(echo "$aws_act_id" | grep -E '^[[:digit:]]{1,}$')" ]; then
+                             echo "\033[31mInvalid AWS Account id\033[0m"
+                             exit 1
+                        elif [ $(echo "$aws_act_id" | awk '{print length}') != 12 ]; then
+                               echo "\033[31mInvalid AWS Account id\033[0m"
+                               exit 1
+                        fi
+                        if [ -z $(echo "$aws_vpc_id" | grep -E '^vpc.?-.+') ]; then
+                            echo "\033[31mInvalid VPC Id\033[0m"
+                            exit 1
+                        fi
+                        if [ -z "$(echo "$aws_vpc_cidr" | grep -E '([0-9]{1,3})\\.([0-9]{1,3})\\.([0-9]{1,3})\\.([0-9]{1,3})\\/[0-9]{1,3}')" ]; then
+                            echo "\033[31mInvalid AWS VPC cidr\033[0m"
+                            exit 1
+                        else
+                         if [ $(echo "$aws_vpc_cidr" | cut -f 2- -d '/') -gt 28 ]; then
+                             echo "\033[31mInvalid AWS VPC cidr\033[0m"
+                             exit 1
 
-- Visit https://account.mongodb.com/ and login to Mongodb Atlas Account
-
-  - For logging into dev environment, search for **Mongo Atlas (Dev)** in 1Password
-  - For logging into prod environment, search for **Mongo Atlas (Prod)** in 1Password
-
-- Navigate to the Access Manager page for your project.
-  If it is not already displayed, select the organization that contains your desired project from the Organizations menu in the navigation bar.
-
-- Select your desired project from the list of projects in the Projects page.
-
-- Click the vertical ellipsis () next to your project name in the upper left corner and select Project Settings.
-
-- Click Access Manager in the navigation bar, then click your project.
-
-- Click Create API Key.
-
-- Enter the API Key Information.
-  On the Create API Key page:
-
-- Enter a Description.
-
-- In the Project Permissions menu, select the new role or roles for the API key.
-
-- Click Next.
-
-- Copy and save the Public Key.
-  The public key acts as the username when making API requests.
-
-- Copy and save the Private Key.
-  The private key acts as the password when making API requests.
-
-- Add an API Access List Entry.
-  Click Add Access List Entry.
-
-- Enter an IP address from which you want Atlas to accept API requests for this API Key.
-
-- You can also click Use Current IP Address if the host you are using to access Atlas will also make API requests using this API Key.
-
-- Click Save.
-
-- Click Done.
-
-### 2. Pass values of Public Key and Private in parameters of Jenkins Pipiline.
-
-### 3. Create credentials in Jenkins for AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY and AWS_SESSION_TOKEN.
-
-### 4. Select the region.
-
-### 5. Select Atlas Project from the list.
-
-### 6. Provide Atlas instance name in format: wo-<env>-<instance> Ex. wo-dev-lcap.
-
-### 7. Provide instance size for cluster Ex. M10.
-
-Atlas provides different instance sizes, each with a default storage capacity and RAM size. The instance size you select is used for all the data-bearing servers in your cluster.
-
-### 8. Provide disk size in GB. The minimum disk size for dedicated clusters is 10GB.
-
-### 7. VPC Peering (not needed for dev environmet)
-
-For peering VPC and Mongo cluster -
-
-- Provide valid aws account id.
-
-- Provide valid VPC id eg. vpc-xxxxxxxxxx
-
-- Provide valid VPC IPv4 cidr block.
+                         elif [ $(echo "$aws_vpc_cidr" | cut -f 2- -d '/') -lt 16 ]; then
+                               echo "\033[31mInvalid AWS VPC cidr\033[0m"
+                               exit 1
+                         fi
+                       fi
+                    fi
+                    echo "atlas_region=$atlas_region"
+                    echo "AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION"
+                    echo "ATLAS_PROJECT_NAME=$ATLAS_PROJECT_NAME"
+                    echo "ATLAS_PROJECT_ID=$ATLAS_PROJECT_ID"
+                    echo "atlas_cluster_name=$atlas_cluster_name"
+                    '''
+                    , returnStatus:true)
+                    if (res != 0) {
+                        currentBuild.result = 'ABORTED'
+                        error('Invalid format of parameter')
+                    }
+                }
+            }
+        }
+        stage('Validate cluster name') {
+            steps {
+                script {
+                    def res = 0
+                    res = sh(script: '''#!/bin/bash
+                        # export ATLAS_PROJECT_ID="$(echo "$atlas_project"|cut -f 2 -d "("|cut -f 1 -d ")")"
+                        clusters_json="$(curl --silent --user "${atlas_public_key}:${atlas_private_key}" --digest -X GET "https://cloud.mongodb.com/api/atlas/v1.0/groups/${ATLAS_PROJECT_ID}/clusters" | jq ".results[].name")"
+                        echo "clusters_json=$clusters_json"
+                        if [ ! -z "$clusters_json" ]; then
+                            if echo "$clusters_json" | grep -E "${atlas_cluster_name}" 1>/dev/null 2>&1; then
+                                echo "$\033[31matlas_cluster_name already exists!\033[0m"
+                                exit 1
+                            else
+                                echo "$atlas_cluster_name does not exist!"
+                                exit 0
+                            fi
+                        else
+                            echo "no cluster exist"
+                            exit 0
+                        fi
+                    '''
+                    , returnStatus:true)
+                    if (res != 0) {
+                        currentBuild.result = 'ABORTED'
+                        error('Provided cluster name already exist')
+                    }
+                }
+            }
+        }
+        stage('Terraform init') {
+            steps {
+                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+                    sh '''#!/bin/bash
+                    rm -rf .terraform .terraform.lock.hcl terraform.tfstate.d
+                    # Split atlas_project into ATLAS_PROJECT_NAME and ATLAS_PROJECT_ID
+                    # export ATLAS_PROJECT_NAME="$(echo "$atlas_project"|cut -f 1 -d "(")"
+                    # export ATLAS_PROJECT_ID="$(echo "$atlas_project"|cut -f 2 -d "("|cut -f 1 -d ")")"
+                    terraform init -backend-config="key=${ATLAS_PROJECT_NAME}/${atlas_cluster_name}/terraform.tfstate"
+                   '''
+                }
+            }
+        }
+        stage('Terraform Plan') {
+            steps {
+                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+                    wrap([$class: 'MaskPasswordsBuildWrapper', varPasswordPairs: [[password: atlas_dbpassword]]]) {
+                        sh '''#!/bin/bash
+                    echo "State File Location: mongo-atlas-provisioning-automation-state-bucket > ${ATLAS_PROJECT_NAME}/${atlas_cluster_name}/terraform.tfstate"
+                    # Split atlas_project into ATLAS_PROJECT_NAME and ATLAS_PROJECT_ID
+                    # export ATLAS_PROJECT_NAME="$(echo "$atlas_project"|cut -f 1 -d "(")"
+                    # export ATLAS_PROJECT_ID="$(echo "$atlas_project"|cut -f 2 -d "("|cut -f 1 -d ")")"
+                    # export atlas_dbuser="$(echo "$instance_name-mongodb")"
+                    # Convert Selected Atlas region to lowercase to set aws region & export
+                    # export AWS_DEFAULT_REGION="$(echo "$atlas_region" | tr '[:upper:]' '[:lower:]' | sed "s/_/-/g")"
+                    echo "terraform plan"
+                    terraform plan \
+                      -var public_key=${atlas_public_key} \
+                      -var private_key=${atlas_private_key} \
+                      -var atlas_region=${atlas_region} \
+                      -var project_name=${ATLAS_PROJECT_NAME} \
+                      -var project_id=${ATLAS_PROJECT_ID} \
+                      -var cluster_name=${atlas_cluster_name} \
+                      -var instance_size=${instance_size} \
+                      -var disk_size_gb=${disk_size_gb} \
+                      -var access_key=${AWS_ACCESS_KEY_ID} \
+                      -var secret_key=${AWS_SECRET_ACCESS_KEY} \
+                      -var aws_region=${AWS_DEFAULT_REGION} \
+                      -var aws_token=${AWS_SESSION_TOKEN} \
+                      -var aws_account_id=${aws_act_id} \
+                      -var aws_cidr=${aws_vpc_cidr} \
+                      -var aws_vpc_id=${aws_vpc_id} \
+                      -var atlas_dbpassword=${atlas_dbpassword} \
+                      -var atlas_dbuser=${atlas_dbuser} \
+                      -out my.plan
+                   '''
+                    }
+                }
+            }
+        }
+        stage('Terraform Apply') {
+            steps {
+                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+                    sh '''#!/bin/bash
+                     # export ATLAS_PROJECT_ID="$(echo "$atlas_project"|cut -f 2 -d "("|cut -f 1 -d ")")"
+                     # export atlas_dbuser="$(echo "$instance_name-mongodb")"
+                     echo "terraform Apply"
+                     terraform apply -no-color "my.plan"
+                     # pwd
+                      chmod +x create-mongo-secret.sh
+                      ./create-mongo-secret.sh
+                      RC=$?
+                      if [ $RC != 0 ]; then
+                        exit $RC
+                      fi
+                   '''
+                }
+            }
+        }
+    }
+}
