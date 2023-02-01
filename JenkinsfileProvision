@@ -97,7 +97,7 @@ pipeline {
                         echo "\033[31mInvalid Instance Name Format : Enter Instance Name in format: wo-<env>-<instance>\033[0m"
                         exit 1
                     fi
-                    if [ $disk_size -lt 10 ]; then
+                    if [ $disk_size_gb -lt 10 ]; then
                         echo "\033[31mDisk size should not be less than 10\033[0m"
                         exit 1
                     fi
