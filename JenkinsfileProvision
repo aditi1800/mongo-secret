@@ -33,14 +33,16 @@ pipeline {
         // string(name: 'atlas_cluster_name', defaultValue: '', description: 'Atlas cluster name in format: wo-<env>-<instance>-mongodb Ex. wo-dev-lcap-mongodb')
         // validatingString(name: 'atlas_cluster_name', defaultValue: '', regex: '^wo?-.+?-.+?-mongodb', failedValidationMessage: 'Validation failed! : Enter cluster name in format: wo-<env>-<instance>-mongodb', description: 'Atlas cluster name in format: wo-<env>-<instance>-mongodb Ex. wo-dev-lcap-mongodb')
         validatingString(name: 'atlas_instance_name', defaultValue: '', regex: '^.+?-.+?-.+', failedValidationMessage: 'Validation failed! : Enter instance name in format: wo-<env>-<instance>', description: 'Atlas instance name in format: wo-<env>-<instance> Ex. wo-dev-lcap. This will create mongo cluster with name wo-<env>-<instance>-mongodb in approx. 10 minutes. A database user will be created with name <instance>-mongodb.')
+        validatingString(name: 'instance_size', defaultValue: 'M10', regex: '^M.[0-9]{0,3}$', failedValidationMessage: 'Validation failed! : Enter valid instance size', description: 'Select preferred cluster tier. The cluster tier dictates the memory, storage, and IOPS specification for each data-bearing server in the cluster. Ex. M10')
+        validatingString(name: 'disk_size_gb', defaultValue: '10', regex: '^[0-9]{1,}$', failedValidationMessage: 'Validation failed! : Enter valid disk size', description: 'Capacity, GB, of the host’s root volume. The minimum disk size for dedicated clusters is 10GB.')
         separator(name: 'VPC Peering Related Parameters', sectionHeader: 'VPC Peering Related Parameters (not needed for dev environmet)')
         // string(name: 'aws_region', defaultValue: 'ap-south-1', description: 'AWS Region in which cluster needs to be deployed.')
         // string(name: 'atlas_vpc_cidr', defaultValue: '', description: 'Atlas VPC CIDR block')
         string(name: 'aws_act_id', defaultValue: '', description: 'AWS account in which service needs to be deployed.')
         string(name: 'aws_vpc_id', defaultValue: '', description: 'AWS VPC ID for peering Ex. vpc-xxxxxxxxxxx')
         string(name: 'aws_vpc_cidr', defaultValue: '', description: 'AWS VPC IPv4 CIDR block in format: x.x.x.x/x Ex. 10.0.0.0/16. IPv4 CIDR block of VPC must not overlap')
-    //string(name: 'subnet_a_cidr', defaultValue: '', description: 'AWS VPC subnet a CIDR block')
-    //string(name: 'subnet_b_cidr', defaultValue: '', description: 'AWS VPC subnet b CIDR block')
+        //string(name: 'subnet_a_cidr', defaultValue: '', description: 'AWS VPC subnet a CIDR block')
+        //string(name: 'subnet_b_cidr', defaultValue: '', description: 'AWS VPC subnet b CIDR block')
     }
     environment {
         BRANCH_NAME_ENV = 'mongo-atlas-provisioning'
@@ -66,11 +68,11 @@ pipeline {
     // TF_LOG="TRACE"
     }
     stages {
-        // stage('checkout') {
-            // steps {
-                // git branch: "${BRANCH_NAME_ENV}", credentialsId: 'git-cred-for-MongoDB', url: 'https://github.ibm.com/WatsonOrchestrate/wo-mongodb-atlas-automation.git'
-           // }
-        // }
+        stage('checkout') {
+            steps {
+                git branch: "${BRANCH_NAME_ENV}", credentialsId: 'git-cred-for-MongoDB', url: 'https://github.ibm.com/WatsonOrchestrate/wo-mongodb-atlas-automation.git'
+            }
+        }
         stage('Variable Processing') {
             steps {
                 script {
@@ -93,6 +95,10 @@ pipeline {
                     fi
                     if [ -z $(echo "$atlas_instance_name" | grep -E '^.+?-.+?-.+') ]; then
                         echo "\033[31mInvalid Instance Name Format : Enter Instance Name in format: wo-<env>-<instance>\033[0m"
+                        exit 1
+                    fi
+                    if [ $disk_size -lt 10 ]; then
+                        echo "\033[31mDisk size should not be less than 10\033[0m"
                         exit 1
                     fi
                     if [ ! -z "$aws_vpc_id" ]; then
@@ -128,9 +134,9 @@ pipeline {
                     echo "atlas_cluster_name=$atlas_cluster_name"
                     '''
                     , returnStatus:true)
-                    if (res != 0) {                        
+                    if (res != 0) {
                         currentBuild.result = 'ABORTED'
-                        error('Invalid format of parameter')                        
+                        error('Invalid format of parameter')
                     }
                 }
             }
@@ -181,7 +187,7 @@ pipeline {
             steps {
                 catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                     wrap([$class: 'MaskPasswordsBuildWrapper', varPasswordPairs: [[password: atlas_dbpassword]]]) {
-                        sh '''#!/bin/bash
+                    sh '''#!/bin/bash
                     echo "State File Location: mongo-atlas-provisioning-automation-state-bucket > ${ATLAS_PROJECT_NAME}/${atlas_cluster_name}/terraform.tfstate"
                     # Split atlas_project into ATLAS_PROJECT_NAME and ATLAS_PROJECT_ID
                     # export ATLAS_PROJECT_NAME="$(echo "$atlas_project"|cut -f 1 -d "(")"
@@ -197,6 +203,8 @@ pipeline {
                       -var project_name=${ATLAS_PROJECT_NAME} \
                       -var project_id=${ATLAS_PROJECT_ID} \
                       -var cluster_name=${atlas_cluster_name} \
+                      -var instance_size=${instance_size} \
+                      -var disk_size_gb=${disk_size_gb} \
                       -var access_key=${AWS_ACCESS_KEY_ID} \
                       -var secret_key=${AWS_SECRET_ACCESS_KEY} \
                       -var aws_region=${AWS_DEFAULT_REGION} \
