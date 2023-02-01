@@ -35,8 +35,8 @@ resource "mongodbatlas_cluster" "cluster-atlas" {
 
   # Provider Settings "block"
   provider_name               = "AWS"
-  disk_size_gb                = 10
-  provider_instance_size_name = "M10"
+  disk_size_gb                = var.disk_size_gb
+  provider_instance_size_name = var.instance_size
   count = var.env == "dev" ? 1 : 0
 }
 resource "mongodbatlas_database_user" "db-user" {
@@ -68,14 +68,14 @@ resource "mongodbatlas_database_user" "db-user" {
    project_id = var.project_id
  }
 */
-  
+
  resource "mongodbatlas_network_peering" "aws-atlas" {
    count = var.aws_vpc_id != "" ? 1 : 0
    accepter_region_name   = var.aws_region
    #project_id             = mongodbatlas_project.aws_atlas.id
    project_id = var.project_id
    #container_id           = mongodbatlas_network_container.atlas_container.container_id
-   container_id           = mongodbatlas_cluster.cluster-atlas[0].container_id
+   container_id = mongodbatlas_cluster.cluster-atlas[0].container_id
    provider_name          = "AWS"
    # route_table_cidr_block = aws_vpc.primary.cidr_block
    # vpc_id                 = aws_vpc.primary.id
@@ -84,7 +84,7 @@ resource "mongodbatlas_database_user" "db-user" {
    aws_account_id         = var.aws_account_id
  }
 
-resource "aws_vpc_peering_connection_accepter" "peer" {
+ resource "aws_vpc_peering_connection_accepter" "peer" {
   count = var.aws_vpc_id != "" ? 1 : 0
   vpc_peering_connection_id = mongodbatlas_network_peering.aws-atlas[0].connection_id
   auto_accept               = true
