@@ -80,6 +80,12 @@ To create an API key for a project using the Atlas UI:
 
 ### 6. Provide Atlas instance name in format: wo-<env>-<instance> Ex. wo-dev-lcap.
 
+### 7. Provide instance size for cluster Ex. M10.
+
+Atlas provides different instance sizes, each with a default storage capacity and RAM size. The instance size you select is used for all the data-bearing servers in your cluster.
+
+### 8. Provide disk size in GB. The minimum disk size for dedicated clusters is 10GB.
+
 ### 7. VPC Peering (not needed for dev environmet)
 
 For peering VPC and Mongo cluster -
