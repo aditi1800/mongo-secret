@@ -1,4 +1,5 @@
-/*
+
+/*module "aws" {
   module "aws" {
   source = "./modules/aws" 
   //env = var.env
@@ -10,8 +11,6 @@
   aws_cidr = var.aws_cidr
  }
  */
- 
-
 module "mongodb" {
   source = "./modules/mongodb"
   env = var.env
@@ -23,7 +22,9 @@ module "mongodb" {
   cluster_name = var.cluster_name
   atlas_dbuser = var.atlas_dbuser
   atlas_dbpassword = var.atlas_dbpassword
-  // atlas_vpc_cidr = var.atlas_vpc_cidr
+  instance_size = var.instance_size
+  disk_size_gb = var.disk_size_gb
+  //atlas_vpc_cidr = var.atlas_vpc_cidr
   aws_region = var.aws_region
   access_key = var.access_key
   secret_key = var.secret_key
