@@ -41,8 +41,8 @@ pipeline {
         string(name: 'aws_act_id', defaultValue: '', description: 'AWS account in which service needs to be deployed.')
         string(name: 'aws_vpc_id', defaultValue: '', description: 'AWS VPC ID for peering Ex. vpc-xxxxxxxxxxx')
         string(name: 'aws_vpc_cidr', defaultValue: '', description: 'AWS VPC IPv4 CIDR block in format: x.x.x.x/x Ex. 10.0.0.0/16. IPv4 CIDR block of VPC must not overlap')
-    //string(name: 'subnet_a_cidr', defaultValue: '', description: 'AWS VPC subnet a CIDR block')
-    //string(name: 'subnet_b_cidr', defaultValue: '', description: 'AWS VPC subnet b CIDR block')
+        //string(name: 'subnet_a_cidr', defaultValue: '', description: 'AWS VPC subnet a CIDR block')
+        //string(name: 'subnet_b_cidr', defaultValue: '', description: 'AWS VPC subnet b CIDR block')
     }
     environment {
         BRANCH_NAME_ENV = 'mongo-atlas-provisioning'
