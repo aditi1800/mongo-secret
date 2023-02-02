@@ -55,8 +55,8 @@ properties([
                     classpath: [], 
                     sandbox: false, 
                     script: 
-                     '''if (Environment.equals("Dev")){return["wo-sre-dev-cluster(625e8f54c6f9c330400eb8c9)", "wo-sre-pre-prod(6294afcd616aad482736ec3d)", "wo-sre-prod(6294ae49a574e03a2abfb428)", "wo-sre-stg-cluster(6273639f0dbf34569a3c0b2a)"]} 
-                     else if(Environment.equals("Prod")){return["wo-preprod(62a314f63926791c334a45f1)", "wo-prod(62949ec24de8b01612258659)"]}'''
+                     '''if (Environment.equals("Dev")){return["wo-sre-dev-cluster(625e8f54c6f9c330400eb8c9)", "wo-sre-pre-prod(6294afcd616aad482736ec3d)", "wo-sre-prod(6294ae49a574e03a2abfb428)", "wo-sre-stg-cluster(6273639f0dbf34569a3c0b2a)"]}
+else if(Environment.equals("Prod")){return["wo-preprod(62a314f63926791c334a45f1)", "wo-prod(62949ec24de8b01612258659)"]}'''
                         
                 ] 
             ]
