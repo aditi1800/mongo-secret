@@ -44,7 +44,7 @@ properties([
         ],
         [$class: 'CascadeChoiceParameter', 
             choiceType: 'PT_SINGLE_SELECT', 
-            description: 'Select the AMI from the Dropdown List',
+            description: 'Select Project from the list. Respective Project ID mentioned in parenthesis for reference',
             name: 'atlas_project', 
             referencedParameters: 'Environment', 
             script: 
