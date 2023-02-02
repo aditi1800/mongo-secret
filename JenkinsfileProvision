@@ -17,7 +17,58 @@ A database cluster is a collection of databases that is managed by a single inst
 Base URL: https://cloud.mongodb.com/api/atlas/v1.0/groups/{GROUP-ID}/clusters
 
 */
-
+properties([
+    parameters([
+        [$class: 'ChoiceParameter', 
+            choiceType: 'PT_SINGLE_SELECT', 
+            description: 'Select the Environment from the Dropdown List', 
+            filterLength: 1, 
+            filterable: false, 
+            name: 'Environment', 
+            script: [
+                $class: 'GroovyScript', 
+                fallbackScript: [
+                    classpath: [], 
+                    sandbox: false, 
+                    script: 
+                        "return['Could not get The environemnts']"
+                    ], 
+                script: [
+                    classpath: [], 
+                    sandbox: false, 
+                    script: 
+                        "return['Dev', 'Prod']"
+                ]
+            ]
+        ],
+        [$class: 'CascadeChoiceParameter', 
+            choiceType: 'PT_SINGLE_SELECT', 
+            description: 'Select the AMI from the Dropdown List',
+            name: 'atlas_project', 
+            referencedParameters: 'Environment', 
+            script: 
+                [$class: 'GroovyScript', 
+                fallbackScript: [
+                    classpath: [], 
+                    sandbox: false, 
+                    script: "return['Could not get Environment Param']"
+                ], 
+                script: [
+                    classpath: [], 
+                    sandbox: false, 
+                    script: '''
+                        if (Environment.equals("Dev")){
+                            return["wo-sre-dev-cluster(625e8f54c6f9c330400eb8c9)", "wo-sre-pre-prod(6294afcd616aad482736ec3d)", "wo-sre-prod(6294ae49a574e03a2abfb428)", "wo-sre-stg-cluster(6273639f0dbf34569a3c0b2a)"]
+                        }
+                        else if(Environment.equals("Prod")){
+                            return["wo-preprod(62a314f63926791c334a45f1)", "wo-prod(62949ec24de8b01612258659)"]
+                        }
+                        '''
+                ] 
+            ]
+        ]
+    ])
+])
 pipeline {
     agent any
     options {
@@ -29,7 +80,7 @@ pipeline {
         password(name: 'atlas_private_key', defaultValue: '', description: 'MongoDB Atlas private key(typically 36 characters in length) for provisioning.')
         // choice(name: 'atlas_region', choices: ['US_EAST_1', 'US_WEST_2', 'CA_CENTRAL_1', 'US_EAST_2', 'US_WEST_1', 'SA_EAST_1', 'AP_SOUTHEAST_1', 'AP_SOUTHEAST_2', 'AP_SOUTHEAST_3', 'AP_SOUTH_1', 'AP_EAST_1', 'AP_NORTHEAST_1', 'AP_NORTHEAST_2', 'AP_NORTHEAST_3', 'EU_WEST_1', 'EU_CENTRAL_1', 'EU_NORTH_1', 'EU_WEST_2', 'EU_WEST_3', 'EU_SOUTH_1', 'ME_SOUTH_1', 'AF_SOUTH_1'], description: 'Select Project')
         choice(name: 'region', choices: ['us-east-1', 'us-west-2', 'ca-central-1', 'us-east-2', 'us-west-1', 'sa-east-1', 'ap-southeast-1', 'ap-southeast-2', 'ap-southeast-3', 'ap-south-1', 'ap-east-1', 'ap-northeast-1', 'ap-northeast-2', 'ap-northeast-3', 'eu-west-1', 'eu-central-1', 'eu-north-1', 'eu-west-2', 'eu-west-3', 'eu-south-1', 'me-south-1', 'af-south-1'], description: 'Select Region')
-        choice(name: 'atlas_project', choices: ['wo-sre-dev-cluster(625e8f54c6f9c330400eb8c9)', 'wo-sre-pre-prod(6294afcd616aad482736ec3d)', 'wo-sre-prod(6294ae49a574e03a2abfb428)', 'wo-sre-stg-cluster(6273639f0dbf34569a3c0b2a)'], description: 'Select Project from the list.Respective Project ID mentioned in parenthesis for reference')
+        // choice(name: 'atlas_project', choices: ['wo-sre-dev-cluster(625e8f54c6f9c330400eb8c9)', 'wo-sre-pre-prod(6294afcd616aad482736ec3d)', 'wo-sre-prod(6294ae49a574e03a2abfb428)', 'wo-sre-stg-cluster(6273639f0dbf34569a3c0b2a)'], description: 'Select Project from the list.Respective Project ID mentioned in parenthesis for reference')
         // string(name: 'atlas_cluster_name', defaultValue: '', description: 'Atlas cluster name in format: wo-<env>-<instance>-mongodb Ex. wo-dev-lcap-mongodb')
         // validatingString(name: 'atlas_cluster_name', defaultValue: '', regex: '^wo?-.+?-.+?-mongodb', failedValidationMessage: 'Validation failed! : Enter cluster name in format: wo-<env>-<instance>-mongodb', description: 'Atlas cluster name in format: wo-<env>-<instance>-mongodb Ex. wo-dev-lcap-mongodb')
         validatingString(name: 'atlas_instance_name', defaultValue: '', regex: '^.+?-.+?-.+', failedValidationMessage: 'Validation failed! : Enter instance name in format: wo-<env>-<instance>', description: 'Atlas instance name in format: wo-<env>-<instance> Ex. wo-dev-lcap. This will create mongo cluster with name wo-<env>-<instance>-mongodb in approx. 10 minutes. A database user will be created with name <instance>-mongodb.')
@@ -68,11 +119,11 @@ pipeline {
     // TF_LOG="TRACE"
     }
     stages {
-        // stage('checkout') {
-            // steps {
-                // git branch: "${BRANCH_NAME_ENV}", credentialsId: 'git-cred-for-MongoDB', url: 'https://github.ibm.com/WatsonOrchestrate/wo-mongodb-atlas-automation.git'
-            // }
-        // }
+        stage('checkout') {
+            steps {
+                git branch: "${BRANCH_NAME_ENV}", credentialsId: 'git-cred-for-MongoDB', url: 'https://github.ibm.com/WatsonOrchestrate/wo-mongodb-atlas-automation.git'
+            }
+        }
         stage('Variable Processing') {
             steps {
                 script {
@@ -102,14 +153,11 @@ pipeline {
                         exit 1
                     fi
                     if [ ! -z "$aws_vpc_id" ]; then
-                        if [ -z "$(echo "$aws_act_id" | grep -E '^[[:digit:]]{1,}$')" ]; then
+                        if [ -z "$(echo "$aws_act_id" | grep -E '^[[:digit:]]{12}$')" ]; then
                              echo "\033[31mInvalid AWS Account id\033[0m"
                              exit 1
-                        elif [ $(echo "$aws_act_id" | awk '{print length}') != 12 ]; then
-                               echo "\033[31mInvalid AWS Account id\033[0m"
-                               exit 1
                         fi
-                        if [ -z $(echo "$aws_vpc_id" | grep -E '^vpc.?-.+') ]; then
+                        if [ -z $(echo "$aws_vpc_id" | grep -E '^vpc-[[:alnum:]]{17}$') ]; then
                             echo "\033[31mInvalid VPC Id\033[0m"
                             exit 1
                         fi
