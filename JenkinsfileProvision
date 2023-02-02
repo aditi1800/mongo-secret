@@ -31,7 +31,7 @@ properties([
                     classpath: [], 
                     sandbox: false, 
                     script: 
-                        "return['Could not get The environemnts']"
+                        'return["Could not get The environemnts"]'
                     ], 
                 script: [
                     classpath: [], 
@@ -51,7 +51,7 @@ properties([
                 fallbackScript: [
                     classpath: [], 
                     sandbox: false, 
-                    script: "return['Could not get Environment Param']"
+                    script: 'return["Could not get Environment Param"]'
                 ], 
                 script: [
                     classpath: [], 
