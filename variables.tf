@@ -44,7 +44,6 @@ variable "atlas_vpc_cidr" {
 
 variable "project_name" {
   description = "MongoDB Atlas project name to create new project"
-  default     = "wo-sre-dev-cluster"
 }
 
 variable "project_id" {
