@@ -19,6 +19,9 @@ Base URL: https://cloud.mongodb.com/api/atlas/v1.0/groups/{GROUP-ID}/clusters
 */
 properties([
     parameters([
+        separator(name: 'MongoDB Atlas Parameters', sectionHeader: 'MongoDB Atlas Parameters'),
+        password(name: 'atlas_public_key', defaultValue: '', description: 'MongoDB Atlas public key(typically 8 characters in length) for provisioning. Refer - https://github.ibm.com/WatsonOrchestrate/wo-mongodb-atlas-automation/blob/main/README.md'),
+        password(name: 'atlas_private_key', defaultValue: '', description: 'MongoDB Atlas private key(typically 36 characters in length) for provisioning.'),
         [$class: 'ChoiceParameter', 
             choiceType: 'PT_SINGLE_SELECT', 
             description: 'Select the Environment from the Dropdown List', 
@@ -59,7 +62,15 @@ properties([
                         
                 ] 
             ]
-        ]
+        ],
+        choice(name: 'region', choices: ['us-east-1', 'us-west-2', 'ca-central-1', 'us-east-2', 'us-west-1', 'sa-east-1', 'ap-southeast-1', 'ap-southeast-2', 'ap-southeast-3', 'ap-south-1', 'ap-east-1', 'ap-northeast-1', 'ap-northeast-2', 'ap-northeast-3', 'eu-west-1', 'eu-central-1', 'eu-north-1', 'eu-west-2', 'eu-west-3', 'eu-south-1', 'me-south-1', 'af-south-1'], description: 'Select Region'),
+        validatingString(name: 'atlas_instance_name', defaultValue: '', regex: '^.+?-.+?-.+', failedValidationMessage: 'Validation failed! : Enter instance name in format: wo-<env>-<instance>', description: 'Atlas instance name in format: wo-<env>-<instance> Ex. wo-dev-lcap. This will create mongo cluster with name wo-<env>-<instance>-mongodb in approx. 10 minutes. A database user will be created with name <instance>-mongodb.'),
+        validatingString(name: 'instance_size', defaultValue: 'M10', regex: '^M.[0-9]{0,3}$', failedValidationMessage: 'Validation failed! : Enter valid instance size', description: 'Select preferred cluster tier. The cluster tier dictates the memory, storage, and IOPS specification for each data-bearing server in the cluster. Ex. M10'),
+        validatingString(name: 'disk_size_gb', defaultValue: '10', regex: '^[0-9]{1,}$', failedValidationMessage: 'Validation failed! : Enter valid disk size', description: 'Capacity, GB, of the host’s root volume. The minimum disk size for dedicated clusters is 10GB.'),
+        separator(name: 'VPC Peering Related Parameters', sectionHeader: 'VPC Peering Related Parameters (not needed for dev environmet)'),
+        string(name: 'aws_act_id', defaultValue: '', description: 'AWS account in which service needs to be deployed.'),
+        string(name: 'aws_vpc_id', defaultValue: '', description: 'AWS VPC ID for peering Ex. vpc-xxxxxxxxxxx'),
+        string(name: 'aws_vpc_cidr', defaultValue: '', description: 'AWS VPC IPv4 CIDR block in format: x.x.x.x/x Ex. 10.0.0.0/16. IPv4 CIDR block of VPC must not overlap')
     ])
 ])
 pipeline {
@@ -67,6 +78,8 @@ pipeline {
     options {
         ansiColor('xterm')
     }
+
+    /*
     parameters {
         separator(name: 'MongoDB Atlas Parameters', sectionHeader: 'MongoDB Atlas Parameters')
         password(name: 'atlas_public_key', defaultValue: '', description: 'MongoDB Atlas public key(typically 8 characters in length) for provisioning. Refer - https://github.ibm.com/WatsonOrchestrate/wo-mongodb-atlas-automation/blob/main/README.md')
@@ -88,6 +101,7 @@ pipeline {
         //string(name: 'subnet_a_cidr', defaultValue: '', description: 'AWS VPC subnet a CIDR block')
         //string(name: 'subnet_b_cidr', defaultValue: '', description: 'AWS VPC subnet b CIDR block')
     }
+    */
     environment {
         BRANCH_NAME_ENV = 'mongo-atlas-provisioning'
         AWS_ACCESS_KEY_ID = credentials('AWS_ACCESS_KEY_ID')
