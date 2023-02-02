@@ -76,19 +76,25 @@ To create an API key for a project using the Atlas UI:
 
 ### 4. Select the region.
 
-### 5. Select Atlas Project from the list.
+### 5. Select Environment from the drop down list provided i.e. Dev or Prod.
 
-### 6. Provide Atlas instance name in format: wo-<env>-<instance> Ex. wo-dev-lcap.
+Based on the selection of Environment, corresponding list of projects available in the environment will be displayed.
 
-### 7. Provide instance size for cluster Ex. M10.
+### 6. Select Atlas Project from the list.
+
+After selecting environment, select one of the project in which cluster needs to be created.
+
+### 7. Provide Atlas instance name in format: wo-<env>-<instance> Ex. wo-dev-lcap.
+
+### 8. Provide instance size for cluster Ex. M10.
 
 Atlas provides different instance sizes, each with a default storage capacity and RAM size. The instance size you select is used for all the data-bearing servers in your cluster.
 
-### 8. Provide disk size in GB. The minimum disk size for dedicated clusters is 10GB.
+### 9. Provide disk size in GB. The minimum disk size for dedicated clusters is 10GB.
 
-### 7. VPC Peering (not needed for dev environmet)
+### 10. VPC Peering (not needed for dev environmet)
 
-For peering VPC and Mongo cluster -
+To do VPC Peering, provide vpc id and other aws related parameters. If vps id and other aws parameters are not provided, VPC Peering will be not done. For peering VPC and Mongo cluster -
 
 - Provide valid aws account id.
 
