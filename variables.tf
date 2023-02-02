@@ -31,10 +31,6 @@ variable "atlas_region" {
   description = "Atlas Region"
 }
 
-variable "atlasorgid" {
-  description = "Atlas Org ID"
-}
-
 /*
 variable "atlas_vpc_cidr" {
   description = "Atlas CIDR"
