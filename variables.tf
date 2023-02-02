@@ -5,6 +5,7 @@ variable "env" {
 # MongoDB Variables Below
 variable "public_key" {
   description = "The public API key for MongoDB Atlas"
+  sensitive = true
 }
 
 variable "atlas_dbuser" {
@@ -23,16 +24,15 @@ variable "cluster_name" {
 
 variable "private_key" {
   description = "The private API key for MongoDB Atlas"
+  sensitive = true
 }
 
 variable "atlas_region" {
-  default     = "US_EAST_1"
   description = "Atlas Region"
 }
 
 variable "atlasorgid" {
   description = "Atlas Org ID"
-  default     = "625e8ee725e33a22794e0bad"
 }
 
 /*
@@ -49,7 +49,6 @@ variable "project_name" {
 
 variable "project_id" {
   description = "MongoDB Atlas project id for project wo-sre-dev-cluster"
-  default     = "625e8f54c6f9c330400eb8c9"
 }
 
 variable "instance_size" {
@@ -72,13 +71,11 @@ variable "secret_key" {
 }
 
 variable "aws_region" {
-  default     = "us-east-1"
   description = "AWS Region"
 }
 
 variable "aws_account_id" {
   description = "My AWS Account ID, Default to Dev AWS A/c"
-  default     = "640365590647"
 }
 
 variable "aws_vpc_id" {
